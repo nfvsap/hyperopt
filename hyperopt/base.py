@@ -598,6 +598,7 @@ class Trials(object):
         return rval
 
     def fmin(self, fn, space, algo, max_evals,
+             target=None,
              rstate=None,
              verbose=0,
              pass_expr_memo_ctrl=None,
@@ -626,6 +627,7 @@ class Trials(object):
         from .fmin import fmin
         return fmin(
             fn, space, algo, max_evals,
+            target=target,
             trials=self,
             rstate=rstate,
             verbose=verbose,

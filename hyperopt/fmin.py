@@ -102,6 +102,7 @@ class FMinIter(object):
                  max_queue_len=1,
                  poll_interval_secs=1.0,
                  max_evals=sys.maxsize,
+                 target=None,
                  verbose=0,
                  ):
         self.algo = algo
@@ -114,6 +115,7 @@ class FMinIter(object):
         self.poll_interval_secs = poll_interval_secs
         self.max_queue_len = max_queue_len
         self.max_evals = max_evals
+        self.target = target
         self.rstate = rstate
 
         if self.asynchronous:
@@ -198,6 +200,11 @@ class FMinIter(object):
                     for d in self.trials.trials:
                         print('trial %i %s %s' % (d['tid'], d['state'],
                                                   d['result'].get('status')))
+                if len(self.trials.trials) and self.target != None:
+                    for trial in self.trials.trials:
+                        if trial['result'].get('loss') <= self.target:
+                            stopped = True
+                            break
                 new_trials = algo(new_ids, self.domain, trials,
                                   self.rstate.randint(2 ** 31 - 1))
                 assert len(new_ids) >= len(new_trials)
@@ -246,13 +253,13 @@ class FMinIter(object):
         return self
 
 
-def fmin(fn, space, algo, max_evals, trials=None, rstate=None,
+def fmin(fn, space, algo, max_evals, target=None, trials=None, rstate=None,
          allow_trials_fmin=True, pass_expr_memo_ctrl=None,
          catch_eval_exceptions=False,
          verbose=0,
          return_argmin=True,
          points_to_evaluate=None,
-         max_queue_len=1
+         max_queue_len=1,
          ):
     """Minimize a function over a hyperparameter space.
 
@@ -291,6 +298,9 @@ def fmin(fn, space, algo, max_evals, trials=None, rstate=None,
 
     max_evals : int
         Allow up to this many function evaluations before returning.
+
+    target : number or None
+        Stops the algorithm if it finds a 'loss' less or equal to target.
 
     trials : None or base.Trials (or subclass)
         Storage for completed, ongoing, and scheduled evaluation points.  If
@@ -360,6 +370,7 @@ def fmin(fn, space, algo, max_evals, trials=None, rstate=None,
             fn, space,
             algo=algo,
             max_evals=max_evals,
+            target=target,
             rstate=rstate,
             pass_expr_memo_ctrl=pass_expr_memo_ctrl,
             verbose=verbose,
@@ -377,7 +388,7 @@ def fmin(fn, space, algo, max_evals, trials=None, rstate=None,
     domain = base.Domain(fn, space,
                          pass_expr_memo_ctrl=pass_expr_memo_ctrl)
 
-    rval = FMinIter(algo, domain, trials, max_evals=max_evals,
+    rval = FMinIter(algo, domain, trials, max_evals=max_evals, target=target,
                     rstate=rstate,
                     verbose=verbose,
                     max_queue_len=max_queue_len)
