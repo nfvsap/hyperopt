@@ -599,6 +599,7 @@ class Trials(object):
 
     def fmin(self, fn, space, algo, max_evals,
              target=None,
+             end_time=None,
              rstate=None,
              verbose=0,
              pass_expr_memo_ctrl=None,
@@ -628,6 +629,7 @@ class Trials(object):
         return fmin(
             fn, space, algo, max_evals,
             target=target,
+            end_time=end_time,
             trials=self,
             rstate=rstate,
             verbose=verbose,
